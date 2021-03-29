@@ -42,8 +42,9 @@ def register():
         fname= form.first_name.data
         lname = form.last_name.data
 
-        user = User.(username=name, password=pwd, email=email, first_name=fname, last_name=lname)
-        registered_user = User.register(name, pwd)
+        user = User(username=name, password=pwd, email=email, first_name=fname, last_name=lname)
+        
+        registered_user = user.register(name, pwd)
 
         db.session.add(user)
         db.session.commit()
