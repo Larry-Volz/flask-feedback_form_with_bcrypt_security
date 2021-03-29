@@ -36,22 +36,21 @@ def register():
     form = RegisterForm()
 
     if form.validate_on_submit(): 
-        name = form.username.data
-        pwd = form.password.data
+        username = form.username.data
+        password = form.password.data
+        first_name = form.first_name.data
+        last_name = form.last_name.data
         email = form.email.data
-        fname= form.first_name.data
-        lname = form.last_name.data
 
-        user = User(username=name, password=pwd, email=email, first_name=fname, last_name=lname)
-        
-        registered_user = user.register(name, pwd)
+        user = User.register(username, password, first_name, last_name, email)
 
         db.session.add(user)
         db.session.commit()
 
-        session["user_id"] = user.id
+        session['username'] = user.username
 
         # on successful login, redirect to secret page
+        # return redirect(f"/users/{user.username}")
         return redirect("/secret")
 
     else:
