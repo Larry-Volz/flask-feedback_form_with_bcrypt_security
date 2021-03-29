@@ -1,12 +1,17 @@
 """Example flask app that stores passwords hashed with Bcrypt. Yay!"""
 
+'''
+TODO:
+- FIX password in models/forms to be password field instead of text
+
+'''
 from flask import Flask, render_template, redirect, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
 from models import connect_db, db, User
-# from forms import RegisterForm, LoginForm 
+from forms import RegisterForm, LoginForm 
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgres:///feedback_form"
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///feedback_form"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 app.config["SECRET_KEY"] = "abc123"
@@ -22,20 +27,24 @@ def homepage():
     """Show homepage with links to site areas."""
     #instructions skipped this step and without it can't go to login
 
-    return render_template("index.html")
+    return render_template("index.html")    
 
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user: produce form & handle form submission."""
-
     form = RegisterForm()
 
-    if form.validate_on_submit():
+    if form.validate_on_submit(): 
         name = form.username.data
         pwd = form.password.data
+        email = form.email.data
+        fname= form.first_name.data
+        lname = form.last_name.data
 
-        user = User.register(name, pwd)
+        user = User.(username=name, password=pwd, email=email, first_name=fname, last_name=lname)
+        registered_user = User.register(name, pwd)
+
         db.session.add(user)
         db.session.commit()
 

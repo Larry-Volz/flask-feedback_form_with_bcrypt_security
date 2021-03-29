@@ -1,8 +1,10 @@
 {% extends 'base.html' %}
+
+{% block title %}Register to Leave Feedback {% endblock %}
 {% block content %}
 
 <h1 class="display-4">Register</h1>
-<p class="lead">Register for our site.</p>
+<p class="lead">Register to Leave Feedback.</p>
 
 <form method="POST">
 
@@ -15,7 +17,7 @@
     {{ field }}
 
     {% for error in field.errors %}
-    {{ error }}
+        {{ error }}
     {% endfor %}
   </p>
   {% endfor %}
