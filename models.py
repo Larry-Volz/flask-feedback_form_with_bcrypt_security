@@ -21,9 +21,8 @@ class Feedback(db.Model):
     id = db.Column(db.Integer,primary_key=True, autoincrement=True, unique=True)
     title = db.Column(db.String(100), nullable=False) 
     content = db.Column(db.Text, nullable=False) 
-    username = db.Column(db.Text, db.ForeignKey('users.username'), primary_key=True)
+    username = db.Column(db.String(20), db.ForeignKey('users.username'), nullable=False)
 
-    feedback = db.relationship("Feedback", backref="user", cascade="all,delete")
 
 
 
@@ -38,6 +37,7 @@ class User(db.Model):
     last_name = db.Column(db.String(30), nullable=False)           
     email = db.Column(db.String(50), nullable=False, unique=True)
 
+    feedback = db.relationship("Feedback", backref="user", cascade="all,delete")
 
     # start_register
     @classmethod
