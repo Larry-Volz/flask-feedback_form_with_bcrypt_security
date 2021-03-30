@@ -15,6 +15,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///feedback_form"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 app.config["SECRET_KEY"] = "abc123"
+app.config["DEBUG_TB_INTERCEPT_REDIRECTS"] = False
 
 connect_db(app)
 db.create_all() 
@@ -51,7 +52,7 @@ def register():
 
         # on successful login, redirect to secret page
         # return redirect(f"/users/{user.username}")
-        return redirect("/secret")
+        return redirect(f"/users/{user.username}")
 
     else:
         return render_template("register.html", form=form)
@@ -71,8 +72,8 @@ def login():
         user = User.authenticate(name, pwd)
 
         if user:
-            session["user_id"] = user.id  # keep logged in
-            return redirect("/secret")
+            session["username"] = user.username  # keep logged in
+            return redirect(f"/users/{user.username}")
 
         else:
             form.username.errors = ["Bad name/password"]
@@ -81,11 +82,11 @@ def login():
 # end-login    
 
 
-@app.route("/secret")
-def secret():
+@app.route("/users/<username>")
+def secret(username):
     """Example hidden page for logged-in users only."""
 
-    if "user_id" not in session:
+    if "username" not in session:
         flash("You must be logged in to view!")
         return redirect("/")
 
@@ -95,13 +96,14 @@ def secret():
         # raise Unauthorized()
 
     else:
-        return render_template("secret.html")
+        user = User.query.filter_by(username=username).first()  
+        return render_template("secret.html", user=user)
 
 
 @app.route("/logout")
 def logout():
     """Logs user out and redirects to homepage."""
-
-    session.pop("user_id")
+    session.pop("username")
+    flash("You have been logged out")
 
     return redirect("/")
