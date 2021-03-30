@@ -1,14 +1,10 @@
 """Example flask app that stores passwords hashed with Bcrypt. Yay!"""
 
-'''
-TODO:
-- FIX password in models/forms to be password field instead of text
-
-'''
 from flask import Flask, render_template, redirect, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
-from models import connect_db, db, User
-from forms import RegisterForm, LoginForm 
+from models import connect_db, db, User, Feedback
+from forms import RegisterForm, LoginForm, FeedbackForm
+from werkzeug.exceptions import Unauthorized
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///feedback_form"
@@ -33,7 +29,7 @@ def homepage():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    """Register user: produce form & handle form submission."""
+    """Register user: show form & process submission."""
     form = RegisterForm()
 
     if form.validate_on_submit(): 
@@ -107,3 +103,67 @@ def logout():
     flash("You have been logged out")
 
     return redirect("/")
+
+@app.route("/users/<username>/feedback/new", methods=["GET", "POST"])
+def add_feedback(username):
+    """Show FeedbackForm & process it."""
+
+    if "username" not in session or username != session['username']:
+        raise Unauthorized()
+
+    form = FeedbackForm()
+
+    if form.validate_on_submit():
+        title = form.title.data
+        content = form.content.data
+
+        feedback = Feedback(
+            title=title,
+            content=content,
+            username=username,
+        )
+
+        db.session.add(feedback)
+        db.session.commit()
+
+        return redirect(f"/users/{feedback.username}")
+
+    else:
+        return render_template("add_feedback.html", form=form)
+
+@app.route("/feedback/<int:feedback_id>/edit", methods=["GET", "POST"])
+def edit_feedback(feedback_id):
+    """Show FeedbackForm for editing and process it."""
+
+    feedback = Feedback.query.get(feedback_id)
+
+    if "username" not in session or feedback.username != session['username']:
+        raise Unauthorized()
+
+    form = FeedbackForm(obj=feedback)
+
+    if form.validate_on_submit():
+        feedback.title = form.title.data
+        feedback.content = form.content.data
+
+        db.session.commit()
+
+        return redirect(f"/users/{feedback.username}")
+
+    return render_template("/edit.html", form=form, feedback=feedback)
+
+@app.route("/feedback/<int:feedback_id>/delete")
+def delete_feedback(feedback_id):
+    """delete feedback and return to user/feedback page"""
+    feedback = Feedback.query.get(feedback_id)
+    user = User.query.filter_by(username = feedback.username).first()
+
+    if "username" not in session or feedback.username != session['username']:
+        raise Unauthorized()
+
+    db.session.delete(feedback)
+    db.session.commit()
+
+    flash("feedback deleted")
+
+    return redirect(f"/users/{user.username}")
